@@ -1,40 +1,37 @@
 const db = require("../config/db");
-const generateUUID = require("../utils/generateUUID");
 
-const createUserTable = async () => {
-  const sql = `
-     CREATE TABLE IF NOT EXISTS user(
-     id VARCHAR(50) PRIMARY KEY,
-     name VARCHAR(100) NOT NULL,
-     email VARCHAR(100) UNIQUE NOT NULL,
-     password VARCHAR(100) NOT NULL
-     )
-    `;
+async function createUserTable() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      email VARCHAR(100) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+}
 
-  await db.query(sql);
-};
+async function emailExists(email) {
+  const results = await db.query("SELECT id FROM users WHERE email = ?", [email]);
+  return results.length > 0;
+}
 
-const emailExists = async (email) => {
-  const normalizedEmail = email.trim().toLowerCase();
-  const user = await db.query("SELECT * FROM user WHERE email = ?", [
-    normalizedEmail,
-  ]);
-
-  return user[0];
-};
-
-const createUser = async (name, email, password) => {
-  const id = generateUUID();
-  const user = await db.query(
-    "INSERT INTO user (id, name, email, password) VALUES (?, ?, ? ,?)",
-    [id, name, email, password]
+async function createUser(name, email, password) {
+  await db.query(
+    "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+    [name, email, password]
   );
+}
 
-  return user;
-};
+async function getUserByEmail(email) {
+  const results = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+  return results.length > 0 ? results[0] : null;
+}
 
 module.exports = {
   createUserTable,
   emailExists,
   createUser,
+  getUserByEmail,
 };

@@ -1,9 +1,11 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const app = express();
 const { createUserTable } = require("./models/auth-model");
 
-// Parse JSON body
+// Parse JSON and cookies
 app.use(express.json());
+app.use(cookieParser());
 
 // Create table when server starts
 createUserTable()
